@@ -8,9 +8,9 @@ Kubernetes/KOPS configuration:
 * kubectl version:
 * KOPS version:
 * assumptions for k8s resources requests and limits on pod level (based on best practices and problems you might face on production if set otherwise):
-  ** Requests/limits set on every deployment, very important to set it properly so we won't face issue with "slack" (gap between requested resources and actually used - causes resources to be not efficiently allocated) and with stranded resources (some capacity of a node is not available because eg. CPU requests allocate full node but Mem request just let's say 70% - not possible to schedule new pods anyway)
-  ** Memory overcommit forbidden > set requests=limits
-  ** CPU CSF Quota disabled on the cluster, no CPU throttling (which may significantly impact latencies in multi microservice environment that scales)
+  * Requests/limits set on every deployment, very important to set it properly so we won't face issue with "slack" (gap between requested resources and actually used - causes resources to be not efficiently allocated) and with stranded resources (some capacity of a node is not available because eg. CPU requests allocate full node but Mem request just let's say 70% - not possible to schedule new pods anyway)
+  * Memory overcommit forbidden > set requests=limits
+  * CPU CSF Quota disabled on the cluster, no CPU throttling (which may significantly impact latencies in multi microservice environment that scales)
 * It would be a good idea to restrict Requests and Limits at Namespace level, at least on DEV and PREPROD environment to not trigger scaling (costs) due to incorrect setting in Deployment configuration (ResourceQuotas and LimitRange).
 * Cluster size should be determined by resource request (+ some overhead)
 
