@@ -255,7 +255,16 @@ SSL_CERT_PATH="/etc/ssl/certs/ca-certificates.crt"  #(/etc/ssl/certs for gce, /e
 ```
 
 #### Then let's hit page many times with Apache Bench 
-```ab -n 20 -c 5 http://<<elb_dns>>:5000/```
+```ab -s 600 -n 100 -c 5 http://<<elb_dns>>:5000/```
+
+#### We can already notice that one node has been added:
+```
+kubectl top nodes
+NAME                                           CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
+ip-172-20-56-7.eu-north-1.compute.internal     1954m        97%    719Mi           82%
+ip-172-20-57-213.eu-north-1.compute.internal   883m         44%    690Mi           79%
+ip-172-20-63-134.eu-north-1.compute.internal   118m         5%     723Mi           83%
+```
 
 
 ## Considerations around improvements - latencies and costs
