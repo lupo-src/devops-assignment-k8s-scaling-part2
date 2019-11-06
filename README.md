@@ -145,14 +145,14 @@ kubernetes   ClusterIP      100.64.0.1      <none>                              
 lb           LoadBalancer   100.71.52.108   a8471cffbff1011e9820c06507077d6e-1622315427.eu-north-1.elb.amazonaws.com   5000:32274/TCP   52s
 ```
 
-### Hit the page http://<<elb_dns>>:5000 from few diffrent terminals so ELB will dispatch to all pods (of course adjust 
+### Hit the page http://<<elb_dns>>:5000 from few diffrent terminals so ELB will dispatch to all pods
 ### Watch how it utilizes all available resources on node and pods
 ```
 kubectl top node
 kubectl top pod
 ```
 
-### Now let set up limits and requests (with a rule limit=request, explanation why this way described later on)
+### Now let set up limits and requests
 ```yaml
 spec:
   containers:
@@ -161,7 +161,7 @@ spec:
     name: app
     resources:
       requests:
-        cpu: "400m"
+        cpu: "200m"
       limits:
         cpu: "400m"
 ```
@@ -230,6 +230,32 @@ Error from server (ServiceUnavailable): the server is currently unable to handle
 ```
 
 ### And now it comes to cluster-autoscaler
+#### Let's configure Autoscaller Addon
+```
+wget https://github.com/kubernetes/kops/blob/master/addons/cluster-autoscaler/cluster-autoscaler.sh
+```
+#### Adjust the script
+```
+#Set all the variables in this section
+CLUSTER_NAME="test.k8s.local"
+CLOUD_PROVIDER=aws
+IMAGE=k8s.gcr.io/cluster-autoscaler:v1.1.0
+MIN_NODES=1
+MAX_NODES=10
+AWS_REGION=eu-north-1
+INSTANCE_GROUP_NAME="nodes"
+ASG_NAME="${INSTANCE_GROUP_NAME}.${CLUSTER_NAME}"   #ASG_NAME should be the name of ASG as seen on AWS console.
+IAM_ROLE="masters.${CLUSTER_NAME}"                  #Where will the cluster-autoscaler process run? Currently on the master node.
+SSL_CERT_PATH="/etc/ssl/certs/ca-certificates.crt"  #(/etc/ssl/certs for gce, /etc/ssl/certs/ca-bundle.crt for RHEL7.X)
+```
+
+#### Launch above script
+```
+./cluster-autoscaler.sh
+```
+
+#### Then let's hit page many times with Apache Bench 
+```ab -n 20 -c 5 http://<<elb_dns>>:5000/```
 
 
 ## Considerations around improvements - latencies and costs
