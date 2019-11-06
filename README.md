@@ -51,8 +51,8 @@ Client Version: version.Info{Major:"1", Minor:"16", GitVersion:"v1.16.2", GitCom
 Server Version: version.Info{Major:"1", Minor:"14", GitVersion:"v1.14.6", GitCommit:"96fac5cd13a5dc064f7d9f4f23030a6aeface6cc", GitTreeState:"clean", BuildDate:"2019-08-19T11:05:16Z", GoVersion:"go1.12.9", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
-### We can use gossip-based cluster and ommit setting up DNS zones (for the sake of simplicity in this scenario
-### The only requirement to trigger this is to have the cluster name end with .k8s.local
+We can use gossip-based cluster and ommit setting up DNS zones (for the sake of simplicity in this scenario
+The only requirement to trigger this is to have the cluster name end with .k8s.local
 
 ### Creating buckets for KOPS state store
 ```
@@ -86,8 +86,9 @@ kubectl -n kube-system get pods
 ```
 
 ### Deploying metric-server
-curl https://raw.githubusercontent.com/kubernetes/kops/master/addons/metrics-server/v1.8.x.yaml > metric-server.yaml
-#Edit metric server to work with self signed cert
+```curl https://raw.githubusercontent.com/kubernetes/kops/master/addons/metrics-server/v1.8.x.yaml > metric-server.yaml```
+### Edit metric server to work with self signed cert
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -100,49 +101,59 @@ metadata:
         volumeMounts:
         - name: tmp-dir
           mountPath: /tmp
-		  
-# And the cluster itself
-kops edit cluster --name {cluster_name}
-# edit following part
+```
 
+### And the cluster itself
+```kops edit cluster --name {cluster_name}```
+### Edit following part to (also to allow self signed certs)
+```yaml 
     kubelet:
-    anonymousAuth: false
-    authenticationTokenWebhook: true
-    authorizationMode: Webhook
-# you have run following commands
+      anonymousAuth: false
+      authenticationTokenWebhook: true
+      authorizationMode: Webhook
+```
 
+### Then run following commands
+```
 kops update cluster --yes
 kops rolling-update cluster--yes
 
 kubectl apply -f metric-server.yaml
+```
+### Deploy dashboard
+```kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml```
+### Launch proxy to be able to connect to dashboard from the browser
+```kubectl proxy```
 
-#deploy dashboard
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
-# Launch proxy to be able to connect to dashboard from the browser
-kubectl proxy
-
-# Deploy testing application 
+### Deploy load testing application 
+```
 git clone https://gitlab.com/wuestkamp/kubernetes-scale-that-app.git
 cd kubernetes-scale-that-app/
 kubectl kustomize i | kubectl apply -f -
+```
 
-# Veryfing the deployment
-ubuntu@ip-172-31-46-40:~/kubernetes-scale-that-app$ kubectl get pods
+### Veryfing the deployment
+```
+$ kubectl get pods
 NAME                   READY   STATUS    RESTARTS   AGE
 app-7f7d49d44f-d9rzp   1/1     Running   0          35s
 app-7f7d49d44f-hfkx8   1/1     Running   0          35s
 app-7f7d49d44f-kf486   1/1     Running   0          35s
-ubuntu@ip-172-31-46-40:~/kubernetes-scale-that-app$ kubectl get svc
+$ kubectl get svc
 NAME         TYPE           CLUSTER-IP      EXTERNAL-IP                                                                PORT(S)          AGE
 kubernetes   ClusterIP      100.64.0.1      <none>                                                                     443/TCP          103m
 lb           LoadBalancer   100.71.52.108   a8471cffbff1011e9820c06507077d6e-1622315427.eu-north-1.elb.amazonaws.com   5000:32274/TCP   52s
+```
 
-# Hit the page http://8471cffbff1011e9820c06507077d6e-1622315427.eu-north-1.elb.amazonaws.com:5000 from few diffrent terminals so ELB will dispatch to all pods (of course adjust 
-# Watch how it utilizes all available resources on node and pods
+### Hit the page http://<<elb_dns>>:5000 from few diffrent terminals so ELB will dispatch to all pods (of course adjust 
+### Watch how it utilizes all available resources on node and pods
+```
 kubectl top node
 kubectl top pod
+```
 
-# Now let set up limits and requests (with a rule limit=request, explanation why this way described later on)
+### Now let set up limits and requests (with a rule limit=request, explanation why this way described later on)
+```yaml
 spec:
   containers:
   - image: registry.gitlab.com/wuestkamp/kubernetes-scale-that-app:part1
@@ -153,69 +164,74 @@ spec:
         cpu: "400m"
       limits:
         cpu: "400m"
+```
 
-# Let see how k8s handles this:
-# One hit on the page http://8471cffbff1011e9820c06507077d6e-1622315427.eu-north-1.elb.amazonaws.com:5000 
-
-ubuntu@ip-172-31-46-40:~$ kubectl top pods
+### Let see how k8s handles this, one hit on the page http://<<elb_dns>>:5000 
+```
+$ kubectl top pods
 NAME                   CPU(cores)   MEMORY(bytes)
 app-6d7457dc77-55bdp   301m         160Mi
 app-6d7457dc77-r76js   4m           34Mi
 app-6d7457dc77-rjwfk   4m           34Mi
-ubuntu@ip-172-31-46-40:~$ kubectl top nodes
+$ kubectl top nodes
 NAME                                           CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
 ip-172-20-45-69.eu-north-1.compute.internal    82m          4%     725Mi           83%
 ip-172-20-62-197.eu-north-1.compute.internal   246m         12%    564Mi           64%
+```
 
-# Second hit on page above
-ubuntu@ip-172-31-46-40:~$ kubectl top pods
+### Second hit on page above
+```
+$ kubectl top pods
 NAME                   CPU(cores)   MEMORY(bytes)
 app-6d7457dc77-55bdp   4m           37Mi
 app-6d7457dc77-r76js   300m         243Mi
 app-6d7457dc77-rjwfk   300m         192Mi
-ubuntu@ip-172-31-46-40:~$ kubectl top nodes
-NAME                                           CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
-ip-172-20-45-69.eu-north-1.compute.internal    79m          3%     716Mi           82%
-ip-172-20-62-197.eu-north-1.compute.internal   478m         23%    759Mi           87%
-
+$ kubectl top nodes
 NAME                                           CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
 ip-172-20-45-69.eu-north-1.compute.internal    127m         6%     738Mi           85%
 ip-172-20-62-197.eu-north-1.compute.internal   1525m        76%    586Mi           67%
+```
 
-
-# Now let's set up HPA to see how k8s scales pods
-# This should more or less maintain an average cpu usage across all pods of 50% - just for testing purposes, in real case scenario that would need to be researched in order to apply proper threshold
+### Now let's set up HPA to see how k8s scales pods
+### This should more or less maintain an average cpu usage across all pods of 50% - just for testing purposes, in real case scenario that would need to be researched in order to apply proper threshold
+```
 kubectl autoscale deployment app --cpu-percent=50 --min=3 --max=10
 kubectl get hpa
 NAME   REFERENCE        TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
 app    Deployment/app   34%/50%   3         10        3          47s
+```
 
-# After configuring HPA and hitting page many times following problem occurs:
-ubuntu@ip-172-31-46-40:~/kubernetes-scale-that-app$ kubectl get pods
+### After configuring HPA and hitting page many times following problem occurs:
+```
+$ kubectl get pods
 NAME                  READY   STATUS             RESTARTS   AGE
 app-776d4cd8f-kjzf2   1/1     Running            2          10m
 app-776d4cd8f-s45g4   1/1     Running            1          10m
 app-776d4cd8f-th4ct   1/1     Running            0          101s
 app-776d4cd8f-ww9cq   1/1     Running            0          101s
 app-776d4cd8f-wwqrh   0/1     CrashLoopBackOff   2          10m
-ubuntu@ip-172-31-46-40:~/kubernetes-scale-that-app$ kubectl top nodes
+$ kubectl top nodes
 NAME                                           CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
 ip-172-20-45-69.eu-north-1.compute.internal    164m         8%     743Mi           85%
 ip-172-20-62-197.eu-north-1.compute.internal   2839m        141%   474Mi           54%
 
-ubuntu@ip-172-31-46-40:~/kubernetes-scale-that-app$ kubectl get hpa
+$ kubectl get hpa
 NAME   REFERENCE        TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
 app    Deployment/app   55%/50%   3         10        5          10m
+```
 
-
-# So we see already although scaling of pods is happening as intended we need additional resources to scale furhter
-# Also it often causes API to be unavailable:
-ubuntu@ip-172-31-46-40:~/kubernetes-scale-that-app$ kubectl top nodes
+### So we see already although scaling of pods is happening as intended we need additional resources to scale furhter. 
+### Also it often causes API to be unavailable:
+```
+$ kubectl top nodes
 Error from server (ServiceUnavailable): the server is currently unable to handle the request (get nodes.metrics.k8s.io)
-ubuntu@ip-172-31-46-40:~/kubernetes-scale-that-app$ kubectl top pods
+$ kubectl top pods
 Error from server (ServiceUnavailable): the server is currently unable to handle the request (get pods.metrics.k8s.io)
+```
 
-# And now it comes to cluster-autoscaler
+### And now it comes to cluster-autoscaler
+
+
 ## Considerations around improvements - latencies and costs
 ### Rapid load increases
 Consider using Autoscaling buffer pods, so pod doing nothing with very low priority so that it can be evicted anytime but with requests in place. This reduces time to trigger new node in case of lack of resources, normally this mechanism is triggered when there is pod in pending state which causes latencies.
