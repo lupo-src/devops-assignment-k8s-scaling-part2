@@ -337,7 +337,7 @@ ip-172-20-62-71.eu-north-1.compute.internal    Ready    node     5m7s    v1.14.6
 #### Then 20-30 minutes nodes were scaled down and back to initial setup
 
 ### Summary of the setup and outcomes
-Above described setup is not perfect and was meant to just show what approach I'd take. Definitely one the most important things to focus around scaling is to properly fine tune thresholds and requests/limits. 
+Above described setup is not perfect and was meant to just show what approach I'd take. Definitely one the most important things to focus on regarding scaling is to properly fine tune thresholds and requests/limits. The scenario that I went through only considers CPU utilization, I did not focused on memory. Moreover to properly scale up and down the application itself has to be properly designed so that, for instance, if there is a delay to spawn new resources then app and overall architecture of infastructure can handle retries etc. Topic around scaling is very broad and to properly address requirements and issues one need to know application design and architecture very well. Also a lot o improvements can be made within AWS infra, like for instance tunning ELB etc.
 
 ## Considerations around improvements - latencies and costs
 ### Rapid load increases
