@@ -62,17 +62,17 @@ aws s3api create-bucket \
 	--create-bucket-configuration LocationConstraint=eu-north-1
 ```
 
+### So now setting up env vars for KOPS
+```
+export NAME=test.k8s.local
+export KOPS_STATE_STORE=s3://lupo-kops-state-store
+```
+
 ### Creating cluster config and SSH keys
 ```
 kops create cluster --zones=eu-north-1a --name=${NAME} --node-count=1 --node-size=t3.micro --master-size=t3.micro
 kops create secret --name test.k8s.local sshpublickey admin -i ~/.ssh/id_rsa.pub
 kops edit cluster ${NAME} #adjust if needed
-```
-
-### So now setting up env vars for KOPS
-```
-export NAME=test.k8s.local
-export KOPS_STATE_STORE=s3://lupo-kops-state-store
 ```
 
 ### Spinning up the cluster in AWS
