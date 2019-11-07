@@ -261,14 +261,34 @@ ip-172-20-63-134.eu-north-1.compute.internal   118m         5%     723Mi        
 #### Let's go one set further and try to request even more computation resources 
 #### To trigger resources more quickly I'm going to add more resources on pod level.
 ```yaml
-        resources:
-          limits:
-            cpu: "1"
-          requests:
-            cpu: 500m
+resources:
+  limits:
+    cpu: "1"
+  requests:
+    cpu: 500m
 ```
-```ab -s 600 -n 200 -c 50 http://a51e60c22014b11eabcba0e2fcc39146-271971402.eu-north-1.elb.amazonaws.com:5000/ ```
-
+#### And let's benchmark this using just one request at a time but many times in a raw (I noticed that this apps is not handling well concurent requests)
+```ab -s 600 -n 200 -c 1 http://a51e60c22014b11eabcba0e2fcc39146-271971402.eu-north-1.elb.amazonaws.com:5000/ ```
+#### As a result pending pods have appeard and yet another new node has been initiated
+```
+$ kubectl get pods
+NAME                   READY   STATUS    RESTARTS   AGE
+app-6d45d686cd-2ndx4   0/1     Pending   0          105s
+app-6d45d686cd-gv7dm   1/1     Running   5          17m
+app-6d45d686cd-kv95d   0/1     Pending   0          105s
+app-6d45d686cd-lnb4n   1/1     Running   0          105s
+app-6d45d686cd-lx5l2   1/1     Running   5          17m
+app-6d45d686cd-lz4nc   0/1     Pending   0          105s
+app-6d45d686cd-qvs9x   1/1     Running   0          2m45s
+app-6d45d686cd-t69kn   1/1     Running   5          17m
+$ kubectl get nodes
+NAME                                           STATUS   ROLES    AGE     VERSION
+ip-172-20-39-12.eu-north-1.compute.internal    Ready    node     4h21m   v1.14.6
+ip-172-20-50-177.eu-north-1.compute.internal   Ready    node     51m     v1.14.6
+ip-172-20-59-137.eu-north-1.compute.internal   Ready    master   4h26m   v1.14.6
+ip-172-20-59-90.eu-north-1.compute.internal    Ready    node     14s     v1.14.6
+```
+### Summary of the setup and outcomes
 
 
 ## Considerations around improvements - latencies and costs
