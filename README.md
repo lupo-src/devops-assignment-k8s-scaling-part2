@@ -258,6 +258,18 @@ ip-172-20-57-213.eu-north-1.compute.internal   883m         44%    690Mi        
 ip-172-20-63-134.eu-north-1.compute.internal   118m         5%     723Mi           83%
 ```
 
+#### Let's go one set further and try to request even more computation resources 
+#### To trigger resources more quickly I'm going to add more resources on pod level.
+```yaml
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: 500m
+```
+```ab -s 600 -n 200 -c 50 http://a51e60c22014b11eabcba0e2fcc39146-271971402.eu-north-1.elb.amazonaws.com:5000/ ```
+
+
 
 ## Considerations around improvements - latencies and costs
 ### Rapid load increases
