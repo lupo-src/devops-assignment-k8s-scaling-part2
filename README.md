@@ -221,14 +221,6 @@ app    Deployment/app   55%/50%   3         10        5          10m
 ```
 
 #### So we see already although scaling of pods is happening as intended we need additional resources to scale furhter. 
-#### Also it often causes API to be unavailable:
-```
-$ kubectl top nodes
-Error from server (ServiceUnavailable): the server is currently unable to handle the request (get nodes.metrics.k8s.io)
-$ kubectl top pods
-Error from server (ServiceUnavailable): the server is currently unable to handle the request (get pods.metrics.k8s.io)
-```
-
 #### And now it comes to cluster-autoscaler
 #### Let's configure Autoscaller Addon
 ```
