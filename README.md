@@ -121,7 +121,7 @@ kops rolling-update cluster --yes
 
 kubectl apply -f metric-server.yaml
 ```
-#### Deploy dashboard
+#### Deploy dashboard (optional, just to observe how nodes/pods scale, review events etc.)
 ```kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml```
 #### Launch proxy to be able to connect to dashboard from the browser
 ```kubectl proxy```
