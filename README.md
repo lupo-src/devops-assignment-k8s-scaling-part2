@@ -51,7 +51,8 @@ Client Version: version.Info{Major:"1", Minor:"16", GitVersion:"v1.16.2", GitCom
 Server Version: version.Info{Major:"1", Minor:"14", GitVersion:"v1.14.6", GitCommit:"96fac5cd13a5dc064f7d9f4f23030a6aeface6cc", GitTreeState:"clean", BuildDate:"2019-08-19T11:05:16Z", GoVersion:"go1.12.9", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
-We can use gossip-based cluster and ommit setting up DNS zones (for the sake of simplicity in this scenario
+We can use gossip-based cluster and ommit setting up DNS zones (for the sake of simplicity in this scenario)
+
 The only requirement to trigger this is to have the cluster name end with .k8s.local
 
 #### Creating buckets for KOPS state store
