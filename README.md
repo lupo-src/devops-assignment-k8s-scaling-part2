@@ -269,7 +269,7 @@ resources:
 ```
 #### And let's benchmark this using just one request at a time but many times in a raw (I noticed that this apps is not handling well concurent requests)
 ```ab -s 600 -n 200 -c 1 http://a51e60c22014b11eabcba0e2fcc39146-271971402.eu-north-1.elb.amazonaws.com:5000/ ```
-#### As a result pending pods have appeard and yet another new node has been initiated
+#### As a result pending pods have appeared and yet another new node has been initiated
 ```
 $ kubectl get pods
 NAME                   READY   STATUS    RESTARTS   AGE
@@ -334,9 +334,10 @@ ip-172-20-59-90.eu-north-1.compute.internal    Ready    node     9m58s   v1.14.6
 ip-172-20-62-71.eu-north-1.compute.internal    Ready    node     5m7s    v1.14.6
 [...]
 ```
+#### Then 20-30 minutes nodes were scaled down and back to initial setup
 
 ### Summary of the setup and outcomes
-
+Above described setup is not perfect and was meant to just show what approach I'd take. Definitely one the most important things to focus around scaling is to properly fine tune thresholds and requests/limits. 
 
 ## Considerations around improvements - latencies and costs
 ### Rapid load increases
