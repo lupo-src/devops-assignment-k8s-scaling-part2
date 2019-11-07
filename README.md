@@ -116,7 +116,7 @@ metadata:
 ### Then run following commands
 ```
 kops update cluster --yes
-kops rolling-update cluster--yes
+kops rolling-update cluster --yes
 
 kubectl apply -f metric-server.yaml
 ```
