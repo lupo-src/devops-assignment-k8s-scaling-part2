@@ -288,6 +288,53 @@ ip-172-20-50-177.eu-north-1.compute.internal   Ready    node     51m     v1.14.6
 ip-172-20-59-137.eu-north-1.compute.internal   Ready    master   4h26m   v1.14.6
 ip-172-20-59-90.eu-north-1.compute.internal    Ready    node     14s     v1.14.6
 ```
+#### Eventually I reached the limit of scaling cluster which was set to 10 nodes. It's been achieved quite quictly (few minutes of scaling up)
+```
+kubectl get pods
+NAME                   READY   STATUS     RESTARTS   AGE
+app-6d45d686cd-27p58   0/1     OutOfcpu   0          30s
+app-6d45d686cd-2b7gh   0/1     OutOfcpu   0          27s
+app-6d45d686cd-2n9b5   0/1     OutOfcpu   0          35s
+app-6d45d686cd-2ndx4   1/1     Running    0          6m17s
+app-6d45d686cd-2wrjx   1/1     Running    0          58s
+app-6d45d686cd-4pg2k   0/1     Pending    0          37s
+app-6d45d686cd-568qb   0/1     OutOfcpu   0          31s
+[...]
+Many lines here
+[...]
+app-6d45d686cd-t69kn   1/1     Running    6          21m
+app-6d45d686cd-thscn   0/1     OutOfcpu   0          30s
+app-6d45d686cd-tq7jp   0/1     OutOfcpu   0          26s
+app-6d45d686cd-tvf72   0/1     OutOfcpu   0          2m15s
+app-6d45d686cd-txpwk   0/1     OutOfcpu   0          34s
+app-6d45d686cd-vf42s   0/1     OutOfcpu   0          34s
+app-6d45d686cd-w4474   0/1     OutOfcpu   0          30s
+app-6d45d686cd-wg2zg   0/1     OutOfcpu   0          36s
+app-6d45d686cd-whjcn   0/1     Pending    0          58s
+app-6d45d686cd-whtgd   0/1     OutOfcpu   0          30s
+app-6d45d686cd-whtmq   0/1     OutOfcpu   0          26s
+app-6d45d686cd-whw64   0/1     OutOfcpu   0          32s
+app-6d45d686cd-wj4mv   0/1     OutOfcpu   0          58s
+app-6d45d686cd-wqnrc   0/1     OutOfcpu   0          35s
+app-6d45d686cd-x474p   0/1     Pending    0          37s
+app-6d45d686cd-zgx98   0/1     OutOfcpu   0          33s
+app-6d45d686cd-zkh4m   0/1     OutOfcpu   0          2m15s
+app-6d45d686cd-zmmc7   0/1     OutOfcpu   0          30s
+kubectl get nodes
+NAME                                           STATUS   ROLES    AGE     VERSION
+ip-172-20-35-33.eu-north-1.compute.internal    Ready    node     4m54s   v1.14.6
+ip-172-20-35-98.eu-north-1.compute.internal    Ready    node     6m4s    v1.14.6
+ip-172-20-39-12.eu-north-1.compute.internal    Ready    node     4h30m   v1.14.6
+ip-172-20-40-78.eu-north-1.compute.internal    Ready    node     6m5s    v1.14.6
+ip-172-20-40-92.eu-north-1.compute.internal    Ready    node     5m6s    v1.14.6
+ip-172-20-41-238.eu-north-1.compute.internal   Ready    node     5m36s   v1.14.6
+ip-172-20-50-177.eu-north-1.compute.internal   Ready    node     61m     v1.14.6
+ip-172-20-59-137.eu-north-1.compute.internal   Ready    master   4h36m   v1.14.6
+ip-172-20-59-90.eu-north-1.compute.internal    Ready    node     9m58s   v1.14.6
+ip-172-20-62-71.eu-north-1.compute.internal    Ready    node     5m7s    v1.14.6
+[...]
+```
+
 ### Summary of the setup and outcomes
 
 
