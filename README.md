@@ -18,8 +18,8 @@ Kubernetes/KOPS configuration:
 
 ## Technical walkthrough
 
-### Requirements: KOPS, GIT, kubectl, AWSCLI installed
-### Preparing for KOPS:
+#### Requirements: KOPS, GIT, kubectl, AWSCLI installed
+#### Preparing for KOPS:
 ```
 aws iam create-group --group-name kops
 aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess --group-name kops
@@ -32,19 +32,19 @@ aws iam add-user-to-group --user-name kops --group-name kops
 aws iam create-access-key --user-name kops
 ```
 
-### Configure the aws client to use your new IAM user
+#### Configure the aws client to use your new IAM user
 ```
 aws configure           # Use your new access and secret key here
 aws iam list-users      # you should see a list of all your IAM users here
 ```
 
-### Because "aws configure" doesn't export these vars for kops to use, we export them now
+#### Because "aws configure" doesn't export these vars for kops to use, we export them now
 ```
 export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
 export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
 ```
 
-### We use following version of k8s
+#### We use following version of k8s
 ```
 kubectl version
 Client Version: version.Info{Major:"1", Minor:"16", GitVersion:"v1.16.2", GitCommit:"c97fe5036ef3df2967d086711e6c0c405941e14b", GitTreeState:"clean", BuildDate:"2019-10-15T19:18:23Z", GoVersion:"go1.12.10", Compiler:"gc", Platform:"linux/amd64"}
@@ -54,7 +54,7 @@ Server Version: version.Info{Major:"1", Minor:"14", GitVersion:"v1.14.6", GitCom
 We can use gossip-based cluster and ommit setting up DNS zones (for the sake of simplicity in this scenario
 The only requirement to trigger this is to have the cluster name end with .k8s.local
 
-### Creating buckets for KOPS state store
+#### Creating buckets for KOPS state store
 ```
 aws s3api create-bucket \
     --bucket <<your_bucket_name>> \
@@ -62,32 +62,32 @@ aws s3api create-bucket \
 	--create-bucket-configuration LocationConstraint=eu-north-1
 ```
 
-### So now setting up env vars for KOPS
+#### So now setting up env vars for KOPS
 ```
 export NAME=test.k8s.local
 export KOPS_STATE_STORE=s3://lupo-kops-state-store
 ```
 
-### Creating cluster config and SSH keys
+#### Creating cluster config and SSH keys
 ```
 kops create cluster --zones=eu-north-1a --name=${NAME} --node-count=1 --node-size=t3.micro --master-size=t3.micro
 kops create secret --name test.k8s.local sshpublickey admin -i ~/.ssh/id_rsa.pub
 kops edit cluster ${NAME} #adjust if needed
 ```
 
-### Spinning up the cluster in AWS
+#### Spinning up the cluster in AWS
 ```kops update cluster ${NAME} --yes```
 
-### Verifying the setup
+#### Verifying the setup
 ```
 kops validate cluster
 kubectl get nodes
 kubectl -n kube-system get pods
 ```
 
-### Deploying metric-server
+#### Deploying metric-server
 ```curl https://raw.githubusercontent.com/kubernetes/kops/master/addons/metrics-server/v1.8.x.yaml > metric-server.yaml```
-### Edit metric server to work with self signed cert
+#### Edit metric server to work with self signed cert
 ```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -103,9 +103,9 @@ metadata:
           mountPath: /tmp
 ```
 
-### And the cluster itself
+#### And the cluster itself
 ```kops edit cluster --name {cluster_name}```
-### Edit following part to (also to allow self signed certs)
+#### Edit following part to (also to allow self signed certs)
 ```yaml 
     kubelet:
       anonymousAuth: false
@@ -113,26 +113,26 @@ metadata:
       authorizationMode: Webhook
 ```
 
-### Then run following commands
+#### Then run following commands
 ```
 kops update cluster --yes
 kops rolling-update cluster --yes
 
 kubectl apply -f metric-server.yaml
 ```
-### Deploy dashboard
+#### Deploy dashboard
 ```kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml```
-### Launch proxy to be able to connect to dashboard from the browser
+#### Launch proxy to be able to connect to dashboard from the browser
 ```kubectl proxy```
 
-### Deploy load testing application 
+#### Deploy load testing application 
 ```
 git clone https://gitlab.com/wuestkamp/kubernetes-scale-that-app.git
 cd kubernetes-scale-that-app/
 kubectl kustomize i | kubectl apply -f -
 ```
 
-### Veryfing the deployment
+#### Veryfing the deployment
 ```
 $ kubectl get pods
 NAME                   READY   STATUS    RESTARTS   AGE
@@ -145,14 +145,14 @@ kubernetes   ClusterIP      100.64.0.1      <none>                              
 lb           LoadBalancer   100.71.52.108   a8471cffbff1011e9820c06507077d6e-1622315427.eu-north-1.elb.amazonaws.com   5000:32274/TCP   52s
 ```
 
-### Hit the page http://<<elb_dns>>:5000 from few diffrent terminals so ELB will dispatch to all pods
-### Watch how it utilizes all available resources on node and pods
+#### Hit the page http://<<elb_dns>>:5000 from few diffrent terminals so ELB will dispatch to all pods
+#### Watch how it utilizes all available resources on node and pods
 ```
 kubectl top node
 kubectl top pod
 ```
 
-### Now let set up limits and requests
+#### Now let set up limits and requests
 ```yaml
 spec:
   containers:
@@ -166,7 +166,7 @@ spec:
         cpu: "400m"
 ```
 
-### Let see how k8s handles this, one hit on the page http://<<elb_dns>>:5000 
+#### Let see how k8s handles this, one hit on the page http://<<elb_dns>>:5000 
 ```
 $ kubectl top pods
 NAME                   CPU(cores)   MEMORY(bytes)
@@ -179,7 +179,7 @@ ip-172-20-45-69.eu-north-1.compute.internal    82m          4%     725Mi        
 ip-172-20-62-197.eu-north-1.compute.internal   246m         12%    564Mi           64%
 ```
 
-### Second hit on page above
+#### Second hit on page above
 ```
 $ kubectl top pods
 NAME                   CPU(cores)   MEMORY(bytes)
@@ -192,8 +192,8 @@ ip-172-20-45-69.eu-north-1.compute.internal    127m         6%     738Mi        
 ip-172-20-62-197.eu-north-1.compute.internal   1525m        76%    586Mi           67%
 ```
 
-### Now let's set up HPA to see how k8s scales pods
-### This should more or less maintain an average cpu usage across all pods of 50% - just for testing purposes, in real case scenario that would need to be researched in order to apply proper threshold
+#### Now let's set up HPA to see how k8s scales pods
+#### This should more or less maintain an average cpu usage across all pods of 50% - just for testing purposes, in real case scenario that would need to be researched in order to apply proper threshold
 ```
 kubectl autoscale deployment app --cpu-percent=50 --min=3 --max=10
 kubectl get hpa
@@ -201,7 +201,7 @@ NAME   REFERENCE        TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
 app    Deployment/app   34%/50%   3         10        3          47s
 ```
 
-### After configuring HPA and hitting page many times following problem occurs:
+#### After configuring HPA and hitting page many times following problem occurs:
 ```
 $ kubectl get pods
 NAME                  READY   STATUS             RESTARTS   AGE
@@ -220,8 +220,8 @@ NAME   REFERENCE        TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
 app    Deployment/app   55%/50%   3         10        5          10m
 ```
 
-### So we see already although scaling of pods is happening as intended we need additional resources to scale furhter. 
-### Also it often causes API to be unavailable:
+#### So we see already although scaling of pods is happening as intended we need additional resources to scale furhter. 
+#### Also it often causes API to be unavailable:
 ```
 $ kubectl top nodes
 Error from server (ServiceUnavailable): the server is currently unable to handle the request (get nodes.metrics.k8s.io)
@@ -229,7 +229,7 @@ $ kubectl top pods
 Error from server (ServiceUnavailable): the server is currently unable to handle the request (get pods.metrics.k8s.io)
 ```
 
-### And now it comes to cluster-autoscaler
+#### And now it comes to cluster-autoscaler
 #### Let's configure Autoscaller Addon
 ```
 wget https://github.com/kubernetes/kops/blob/master/addons/cluster-autoscaler/cluster-autoscaler.sh
